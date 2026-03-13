@@ -3,12 +3,26 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-# Lista de URLs (el frontend las abrirá en el navegador del usuario)
+# Lista de URLs (se abren todas a la vez en el navegador del usuario)
 urls = [
     "https://www.google.com",
     "https://www.github.com",
     "https://www.stackoverflow.com",
-    # Añade más URLs aquí
+    "https://www.youtube.com",
+    "https://www.wikipedia.org",
+    "https://www.reddit.com",
+    "https://www.twitter.com",
+    "https://www.linkedin.com",
+    "https://www.amazon.com",
+    "https://www.netflix.com",
+    "https://www.instagram.com",
+    "https://www.medium.com",
+    "https://www.spotify.com",
+    "https://www.notion.so",
+    "https://www.discord.com",
+    "https://www.twitch.tv",
+    "https://www.ebay.com",
+    "https://www.zoom.us",
 ]
 
 @app.route('/api/urls')
