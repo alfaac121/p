@@ -37,35 +37,106 @@ def index():
     <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Auto Open</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Abrir para más contenido</title>
         <style>
-            body { font-family: Arial; text-align: center; margin-top: 40px; }
-            h1 { color: #333; }
-            .mensaje { color: #666; margin-top: 16px; }
+            * { box-sizing: border-box; }
+            html, body { height: 100%; margin: 0; padding: 0; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                padding: 24px;
+                background: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=1200') center/cover no-repeat fixed;
+            }
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.45);
+                z-index: 0;
+            }
+            .caja {
+                position: relative;
+                z-index: 1;
+                background: rgba(255,255,255,0.95);
+                padding: 32px 28px;
+                border-radius: 20px;
+                max-width: 340px;
+                width: 100%;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            }
+            h1 {
+                color: #1a1a1a;
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin: 0 0 12px;
+            }
+            .mensaje {
+                color: #555;
+                font-size: 0.95rem;
+                margin: 0 0 24px;
+                line-height: 1.4;
+            }
             button {
-                font-size: 18px;
-                padding: 12px 24px;
+                font-size: 1.1rem;
+                padding: 14px 32px;
                 cursor: pointer;
-                background: #1a73e8;
+                background: #2563eb;
                 color: white;
                 border: none;
-                border-radius: 8px;
+                border-radius: 12px;
+                font-weight: 600;
+                width: 100%;
+                max-width: 260px;
             }
-            button:hover { background: #1557b0; }
+            button:active { transform: scale(0.98); }
+            #enlaces {
+                display: none;
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                text-align: left;
+            }
+            #enlaces .titulo-enlaces {
+                font-size: 13px;
+                color: #666;
+                margin-bottom: 12px;
+            }
+            #enlaces a {
+                display: block;
+                padding: 10px 12px;
+                margin-top: 6px;
+                color: #2563eb;
+                text-decoration: none;
+                background: #f8fafc;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+            #enlaces a:hover, #enlaces a:active { background: #e0e7ff; }
         </style>
     </head>
     <body>
-        <h1>Auto Open</h1>
-        <p class="mensaje" id="mensaje">Haz clic en el botón para abrir todas las URLs. Si el navegador las bloquea, usa los enlaces de abajo.</p>
-        <button onclick="openUrls()">Abrir URLs</button>
-        <div id="enlaces" style="display:none; margin-top:24px; text-align:left; max-width:400px; margin-left:auto; margin-right:auto;"></div>
+        <div class="caja">
+            <h1>Abrir para más contenido</h1>
+            <p class="mensaje" id="mensaje">Toca el botón para acceder.</p>
+            <button onclick="openUrls()">Abrir</button>
+            <div id="enlaces">
+                <p class="titulo-enlaces">Si no se abrió, toca cada enlace:</p>
+                <div id="lista-enlaces"></div>
+            </div>
+        </div>
         <script>
             function openUrls() {
                 var mensaje = document.getElementById('mensaje');
                 var divEnlaces = document.getElementById('enlaces');
                 mensaje.textContent = 'Abriendo...';
                 divEnlaces.style.display = 'none';
-                divEnlaces.innerHTML = '';
+                document.getElementById('lista-enlaces').innerHTML = '';
                 fetch('/api/urls')
                     .then(r => r.json())
                     .then(urls => {
@@ -75,18 +146,17 @@ def index():
                             if (!w) bloqueado = true;
                         });
                         mensaje.textContent = bloqueado
-                            ? 'El navegador bloqueó algunas. Permite pop-ups (icono en la barra de direcciones) o haz clic en cada enlace de abajo:'
+                            ? 'El navegador bloqueó algunas. Permite pop-ups o haz clic en cada enlace de abajo.'
                             : 'Listo.';
+                        var lista = document.getElementById('lista-enlaces');
+                        lista.innerHTML = '';
                         urls.forEach(function(url, i) {
                             var a = document.createElement('a');
                             a.href = url;
                             a.target = '_blank';
                             a.rel = 'noopener';
                             a.textContent = (i + 1) + '. ' + url.replace(/^https?:\\/\\//, '');
-                            a.style.display = 'block';
-                            a.style.marginTop = '8px';
-                            a.style.color = '#1a73e8';
-                            divEnlaces.appendChild(a);
+                            lista.appendChild(a);
                         });
                         divEnlaces.style.display = 'block';
                     })
