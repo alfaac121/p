@@ -1,5 +1,5 @@
 # main.py
-from flask import Flask, jsonify, redirect
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
@@ -30,11 +30,6 @@ def get_urls():
     """Devuelve la lista de URLs para que el frontend las abra."""
     return jsonify(urls)
 
-@app.route('/redirect/<path:url>')
-def redirect_to(url):
-    """Proxy de navegación: redirige a la URL final (a veces evita bloqueos)."""
-    return redirect(url, code=302)
-
 @app.route('/')
 def index():
     return '''
@@ -61,30 +56,42 @@ def index():
     </head>
     <body>
         <h1>Auto Open</h1>
-        <p class="mensaje" id="mensaje">Haz clic en el botón para abrir todas las URLs en nuevas pestañas.</p>
+        <p class="mensaje" id="mensaje">Haz clic en el botón para abrir todas las URLs. Si el navegador las bloquea, usa los enlaces de abajo.</p>
         <button onclick="openUrls()">Abrir URLs</button>
+        <div id="enlaces" style="display:none; margin-top:24px; text-align:left; max-width:400px; margin-left:auto; margin-right:auto;"></div>
         <script>
             function openUrls() {
-                document.getElementById('mensaje').textContent = 'Abriendo...';
+                var mensaje = document.getElementById('mensaje');
+                var divEnlaces = document.getElementById('enlaces');
+                mensaje.textContent = 'Abriendo...';
+                divEnlaces.style.display = 'none';
+                divEnlaces.innerHTML = '';
                 fetch('/api/urls')
                     .then(r => r.json())
                     .then(urls => {
-                        let bloqueado = false;
-                        urls.forEach(url => {
-                            const newWindow = window.open('/redirect/' + encodeURIComponent(url), '_blank');
-                            if (!newWindow) {
-                                bloqueado = true;
-                            }
+                        var bloqueado = false;
+                        urls.forEach(function(url) {
+                            var w = window.open(url, '_blank');
+                            if (!w) bloqueado = true;
                         });
-                        document.getElementById('mensaje').textContent = bloqueado
-                            ? 'Algunas ventanas se bloquearon. Por favor, permite pop-ups para este sitio y vuelve a pulsar el botón.'
+                        mensaje.textContent = bloqueado
+                            ? 'El navegador bloqueó algunas. Permite pop-ups (icono en la barra de direcciones) o haz clic en cada enlace de abajo:'
                             : 'Listo.';
-                        if (bloqueado) {
-                            alert('Por favor, habilita las ventanas emergentes para este sitio y vuelve a pulsar "Abrir URLs".');
-                        }
+                        urls.forEach(function(url, i) {
+                            var a = document.createElement('a');
+                            a.href = url;
+                            a.target = '_blank';
+                            a.rel = 'noopener';
+                            a.textContent = (i + 1) + '. ' + url.replace(/^https?:\\/\\//, '');
+                            a.style.display = 'block';
+                            a.style.marginTop = '8px';
+                            a.style.color = '#1a73e8';
+                            divEnlaces.appendChild(a);
+                        });
+                        divEnlaces.style.display = 'block';
                     })
-                    .catch(() => {
-                        document.getElementById('mensaje').textContent = 'Error al cargar las URLs.';
+                    .catch(function() {
+                        mensaje.textContent = 'Error al cargar las URLs.';
                     });
             }
         </script>
