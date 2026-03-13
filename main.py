@@ -3,7 +3,7 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-# Lista de URLs (se abren todas a la vez en el navegador del usuario)
+# Lista de URLs (500 en total; el navegador puede bloquear muchas a la vez)
 urls = [
     "https://www.google.com",
     "https://www.github.com",
@@ -23,7 +23,7 @@ urls = [
     "https://www.twitch.tv",
     "https://www.ebay.com",
     "https://www.zoom.us",
-]
+] + ["https://example.com/" + str(i) for i in range(1, 483)]
 
 @app.route('/api/urls')
 def get_urls():
