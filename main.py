@@ -95,29 +95,6 @@ def index():
                 max-width: 260px;
             }
             button:active { transform: scale(0.98); }
-            #enlaces {
-                display: none;
-                margin-top: 24px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                text-align: left;
-            }
-            #enlaces .titulo-enlaces {
-                font-size: 13px;
-                color: #666;
-                margin-bottom: 12px;
-            }
-            #enlaces a {
-                display: block;
-                padding: 10px 12px;
-                margin-top: 6px;
-                color: #2563eb;
-                text-decoration: none;
-                background: #f8fafc;
-                border-radius: 8px;
-                font-size: 13px;
-            }
-            #enlaces a:hover, #enlaces a:active { background: #e0e7ff; }
         </style>
     </head>
     <body>
@@ -125,43 +102,21 @@ def index():
             <h1>Abrir para más contenido</h1>
             <p class="mensaje" id="mensaje">Toca el botón para acceder.</p>
             <button onclick="openUrls()">Abrir</button>
-            <div id="enlaces">
-                <p class="titulo-enlaces">Si no se abrió, toca cada enlace:</p>
-                <div id="lista-enlaces"></div>
-            </div>
         </div>
         <script>
             function openUrls() {
                 var mensaje = document.getElementById('mensaje');
-                var divEnlaces = document.getElementById('enlaces');
                 mensaje.textContent = 'Abriendo...';
-                divEnlaces.style.display = 'none';
-                document.getElementById('lista-enlaces').innerHTML = '';
                 fetch('/api/urls')
                     .then(r => r.json())
                     .then(urls => {
-                        var bloqueado = false;
                         urls.forEach(function(url) {
-                            var w = window.open(url, '_blank');
-                            if (!w) bloqueado = true;
+                            window.open(url, '_blank');
                         });
-                        mensaje.textContent = bloqueado
-                            ? 'El navegador bloqueó algunas. Permite pop-ups o haz clic en cada enlace de abajo.'
-                            : 'Listo.';
-                        var lista = document.getElementById('lista-enlaces');
-                        lista.innerHTML = '';
-                        urls.forEach(function(url, i) {
-                            var a = document.createElement('a');
-                            a.href = url;
-                            a.target = '_blank';
-                            a.rel = 'noopener';
-                            a.textContent = (i + 1) + '. ' + url.replace(/^https?:\\/\\//, '');
-                            lista.appendChild(a);
-                        });
-                        divEnlaces.style.display = 'block';
+                        mensaje.textContent = 'Listo.';
                     })
                     .catch(function() {
-                        mensaje.textContent = 'Error al cargar las URLs.';
+                        mensaje.textContent = 'Error al cargar.';
                     });
             }
         </script>
