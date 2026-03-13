@@ -21,24 +21,13 @@ margin-top:40px;
 
 <script>
 
-let contador = 0;
-let limite = 5; // máximo de pestañas
+const limite = 5; // máximo de pestañas
 
 function iniciar(){
-
-let intervalo = setInterval(()=>{
-
-if(contador >= limite){
-clearInterval(intervalo);
-return;
-}
-
-window.open("https://example.com/?tab=" + contador, "_blank");
-
-contador++;
-
-},300);
-
+  // Abrir todas las pestañas en el mismo clic (síncrono) para que el navegador no las bloquee
+  for (let i = 0; i < limite; i++) {
+    window.open("https://example.com/?tab=" + i, "_blank");
+  }
 }
 
 </script>
