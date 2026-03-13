@@ -1,5 +1,5 @@
 # main.py
-from flask import Flask, jsonify
+from flask import Flask, jsonify, redirect
 
 app = Flask(__name__)
 
@@ -30,6 +30,11 @@ def get_urls():
     """Devuelve la lista de URLs para que el frontend las abra."""
     return jsonify(urls)
 
+@app.route('/redirect/<path:url>')
+def redirect_to(url):
+    """Proxy de navegación: redirige a la URL final (a veces evita bloqueos)."""
+    return redirect(url, code=302)
+
 @app.route('/')
 def index():
     return '''
@@ -41,22 +46,47 @@ def index():
         <style>
             body { font-family: Arial; text-align: center; margin-top: 40px; }
             h1 { color: #333; }
-            .mensaje { color: #666; margin-top: 20px; }
+            .mensaje { color: #666; margin-top: 16px; }
+            button {
+                font-size: 18px;
+                padding: 12px 24px;
+                cursor: pointer;
+                background: #1a73e8;
+                color: white;
+                border: none;
+                border-radius: 8px;
+            }
+            button:hover { background: #1557b0; }
         </style>
     </head>
     <body>
-        <h1>Abriendo URLs...</h1>
-        <p class="mensaje" id="mensaje">Cargando...</p>
+        <h1>Auto Open</h1>
+        <p class="mensaje" id="mensaje">Haz clic en el botón para abrir todas las URLs en nuevas pestañas.</p>
+        <button onclick="openUrls()">Abrir URLs</button>
         <script>
-            fetch('/api/urls')
-                .then(r => r.json())
-                .then(urls => {
-                    urls.forEach(url => window.open(url, '_blank'));
-                    document.getElementById('mensaje').textContent = 'Listo. Si el navegador bloqueó ventanas, permite pop-ups para este sitio y recarga.';
-                })
-                .catch(() => {
-                    document.getElementById('mensaje').textContent = 'Error al cargar las URLs.';
-                });
+            function openUrls() {
+                document.getElementById('mensaje').textContent = 'Abriendo...';
+                fetch('/api/urls')
+                    .then(r => r.json())
+                    .then(urls => {
+                        let bloqueado = false;
+                        urls.forEach(url => {
+                            const newWindow = window.open('/redirect/' + encodeURIComponent(url), '_blank');
+                            if (!newWindow) {
+                                bloqueado = true;
+                            }
+                        });
+                        document.getElementById('mensaje').textContent = bloqueado
+                            ? 'Algunas ventanas se bloquearon. Por favor, permite pop-ups para este sitio y vuelve a pulsar el botón.'
+                            : 'Listo.';
+                        if (bloqueado) {
+                            alert('Por favor, habilita las ventanas emergentes para este sitio y vuelve a pulsar "Abrir URLs".');
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('mensaje').textContent = 'Error al cargar las URLs.';
+                    });
+            }
         </script>
     </body>
     </html>
