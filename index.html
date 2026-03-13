@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Test móvil</title>
+
+<style>
+body{
+font-family: Arial;
+text-align:center;
+margin-top:40px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h3>Prueba de apertura de pestañas</h3>
+<button onclick="iniciar()">Iniciar prueba</button>
+
+<script>
+
+let contador = 0;
+let limite = 5; // máximo de pestañas
+
+function iniciar(){
+
+let intervalo = setInterval(()=>{
+
+if(contador >= limite){
+clearInterval(intervalo);
+return;
+}
+
+window.open("https://example.com/?tab=" + contador, "_blank");
+
+contador++;
+
+},300);
+
+}
+
+</script>
+
+</body>
+</html>
