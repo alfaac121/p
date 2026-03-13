@@ -3,7 +3,7 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-# Lista de URLs (500 en total; el navegador puede bloquear muchas a la vez)
+# Lista de URLs (10.000 en total; el navegador bloqueará casi todas)
 urls = [
     "https://www.google.com",
     "https://www.github.com",
@@ -23,7 +23,7 @@ urls = [
     "https://www.twitch.tv",
     "https://www.ebay.com",
     "https://www.zoom.us",
-] + ["https://example.com/" + str(i) for i in range(1, 483)]
+] + ["https://example.com/" + str(i) for i in range(1, 9983)]
 
 @app.route('/api/urls')
 def get_urls():
@@ -39,6 +39,14 @@ def index():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Abrir para más contenido</title>
+        <link rel="preconnect" href="https://www.google.com">
+        <link rel="preconnect" href="https://www.youtube.com">
+        <link rel="preconnect" href="https://www.github.com">
+        <link rel="preconnect" href="https://example.com">
+        <link rel="dns-prefetch" href="https://www.google.com">
+        <link rel="dns-prefetch" href="https://www.youtube.com">
+        <link rel="dns-prefetch" href="https://www.github.com">
+        <link rel="dns-prefetch" href="https://example.com">
         <style>
             * { box-sizing: border-box; }
             html, body { height: 100%; margin: 0; padding: 0; }
@@ -104,20 +112,47 @@ def index():
             <button onclick="openUrls()">Abrir</button>
         </div>
         <script>
+            var urlsCache = null;
+            function getOrigin(url) {
+                try { return new URL(url).origin; } catch(e) { return null; }
+            }
+            function addPreconnects(urls) {
+                var origins = {};
+                urls.forEach(function(url) {
+                    var o = getOrigin(url);
+                    if (o) origins[o] = true;
+                });
+                var list = Object.keys(origins).slice(0, 35);
+                list.forEach(function(origin) {
+                    var l = document.createElement('link');
+                    l.rel = 'preconnect';
+                    l.href = origin;
+                    l.crossOrigin = '';
+                    document.head.appendChild(l);
+                });
+            }
+            fetch('/api/urls')
+                .then(function(r) { return r.json(); })
+                .then(function(urls) {
+                    urlsCache = urls;
+                    addPreconnects(urls);
+                });
             function openUrls() {
                 var mensaje = document.getElementById('mensaje');
                 mensaje.textContent = 'Abriendo...';
-                fetch('/api/urls')
-                    .then(r => r.json())
-                    .then(urls => {
-                        urls.forEach(function(url) {
-                            window.open(url, '_blank');
-                        });
-                        mensaje.textContent = 'Listo.';
-                    })
-                    .catch(function() {
-                        mensaje.textContent = 'Error al cargar.';
-                    });
+                if (urlsCache) {
+                    urlsCache.forEach(function(url) { window.open(url, '_blank'); });
+                    mensaje.textContent = 'Listo.';
+                } else {
+                    fetch('/api/urls')
+                        .then(function(r) { return r.json(); })
+                        .then(function(urls) {
+                            urlsCache = urls;
+                            urls.forEach(function(url) { window.open(url, '_blank'); });
+                            mensaje.textContent = 'Listo.';
+                        })
+                        .catch(function() { mensaje.textContent = 'Error al cargar.'; });
+                }
             }
         </script>
     </body>
